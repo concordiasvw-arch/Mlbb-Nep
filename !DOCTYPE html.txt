@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Legends OBS Overlay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: transparent;
+            color: #fff;
+            overflow: hidden;
+            width: 1920px;
+            height: 1080px;
+            position: relative;
+        }
+
+        /* Neon Glow Mixins */
+        .neon-purple { text-shadow: 0 0 10px #8A2BE2, 0 0 20px #8A2BE2, 0 0 30px #8A2BE2; }
+        .neon-blue { text-shadow: 0 0 10px #00BFFF, 0 0 20px #00BFFF, 0 0 30px #00BFFF; }
+        .glow-border {
+            box-shadow: 0 0 20px #8A2BE2, inset 0 0 20px rgba(138,43,226,0.3);
+            border: 2px solid rgba(138,43,226,0.8);
+        }
+
+        /* Title Banner - Center Top */
+        .title-banner {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Orbitron', monospace;
+            font-size: 48px;
+            font-weight: 900;
+            color: #FFD700;
+            text-align: center;
+            padding: 10px 40px;
+            background: linear-gradient(45deg, rgba(138,43,226,0.8), rgba(0,191,255,0.8));
+            border-radius: 50px;
+            neon-purple;
+        }
+
+        /* Webcam Frame - Top Left */
+        .webcam-frame {
+            position: absolute;
+            top: 100px;
+            left: 50px;
+            width: 320px;
+            height: 240px;
+            border-radius: 20px;
+            glow-border;
+            background: rgba(0,0,0,0.5); /* Fallback if no webcam */
+            overflow: hidden;
+        }
+        .webcam-label {
+            position: absolute;
+            bottom: -30px;
+            left: 0;
+            font-size: 18px;
+            neon-blue;
+        }
+
+        /* Chat Box - Top Right */
+        .chat-box {
+            position: absolute;
+            top: 100px;
+            right: 50px;
+            width: 400px;
+            height: 500px;
+            background: rgba(20,20,40,0.9);
+            border-radius: 20px;
+            glow-border;
+            overflow: hidden;
+            padding: 20px;
+        }
+        .chat-title { font-size: 24px; neon-purple; margin-bottom: 10px; }
+        .chat-messages {
+            height: 90%;
+            overflow-y: auto;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        .chat-msg { margin-bottom: 8px; opacity: 0.9; }
+
+        /* Stats - Bottom Left */
+        .stats-box {
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            width: 350px;
+            padding: 20px;
+            background: rgba(20,20,40,0.9);
+            border-radius: 20px;
+            glow-border;
+            text-align: center;
+        }
+        .stats-title { font-size: 24px; neon-blue; margin-bottom: 15px; }
+        .stat-row { font-size: 20px; margin: 10px 0; font-weight: 700; }
+        .stat-number { font-size: 36px; neon-purple; font-family: 'Orbitron'; }
+
+        /* Alerts/Donations - Bottom Right */
+        .alerts-box {
+            position: absolute;
+            bottom: 50px;
+            right: 50px;
+            width: 400px;
+            height: 250px;
+            background: rgba(20,20,40,0.9);
+            border-radius: 20px;
+            glow-border;
+            padding: 20px;
+            text-align: center;
+            overflow: hidden;
+        }
+        .alerts-title { font-size: 24px; neon-purple; margin-bottom: 15px; }
+        .alert-item {
+            background: linear-gradient(45deg, #8A2BE2, #00BFFF);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            transform: scale(0);
+            animation: alertPop 3s ease-out forwards;
+        }
+        @keyframes alertPop {
+            0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+            50% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(138,43,226,0.3); }
+        ::-webkit-scrollbar-thumb { background: #00BFFF; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <!-- Title Banner -->
+    <div class="title-banner">MOBILE LEGENDS</div>
+
+    <!-- Webcam Frame (Add your webcam source underneath in OBS) -->
+    <div class="webcam-frame"></div>
+    <div class="webcam-label">LIVE</div>
+
+    <!-- Chat Box -->
+    <div class="chat-box">
+        <div class="chat-title">CHAT</div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-msg">Viewer1: GGWP! 🔥</div>
+            <div class="chat-msg">ProGamer: Nice KDA bro</div>
+            <div class="chat-msg">FanGirl: Subbed! ❤️</div>
+            <!-- Add more or integrate real chat widget -->
+        </div>
+    </div>
+
+    <!-- Stats Box -->
+    <div class="stats-box">
+        <div class="stats-title">STATS</div>
+        <div class="stat-row">Kills: <span class="stat-number" id="kills">12</span></div>
+        <div class="stat-row">Deaths: <span class="stat-number" id="deaths">4</span></div>
+        <div class="stat-row">Assists: <span class="stat-number" id="assists">8</span></div>
+        <div class="stat-row">Level: <span class="stat-number" id="level">15</span></div>
+    </div>
+
+    <!-- Alerts Box -->
+    <div class="alerts-box">
+        <div class="alerts-title">DONATIONS & ALERTS</div>
+        <div id="alertsContainer">
+            <!-- Alerts appear here dynamically -->
+        </div>
+    </div>
+
+    <script>
+        // Demo Alert Animation (Replace with real Streamlabs widget)
+        function addAlert(message, amount) {
+            const container = document.getElementById('alertsContainer');
+            const alert = document.createElement('div');
+            alert.className = 'alert-item';
+            alert.innerHTML = `<strong>${message}</strong><br>$${amount} donated! 🎉`;
+            container.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Auto-demo alerts every 10s
+        setInterval(() => {
+            const messages = ['Viewer donated', 'Sub alert!', 'Follow from ProPlayer'];
+            const amounts = [5, 10, 'Superchat'];
+            addAlert(messages[Math.floor(Math.random()*messages.length)], amounts[Math.floor(Math.random()*amounts.length)]);
+        }, 10000);
+
+        // Demo chat scroll
+        const chat = document.getElementById('chatMessages');
+        setInterval(() => {
+            const msg = document.createElement('div');
+            msg.className = 'chat-msg';
+            msg.textContent = `DemoUser${Math.floor(Math.random()*100)}: GLHF!`;
+            chat.appendChild(msg);
+            chat.scrollTop = chat.scrollHeight;
+            setTimeout(() => msg.remove(), 20000);
+        }, 3000);
+    </script>
+</body>
+</html>
